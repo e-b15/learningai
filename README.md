@@ -1,2 +1,2 @@
 # learningai
-My first major project with Python and a few other languages. 
+My first major project with Python and a few other languages. I originally made this to help students learn with the advantage of AI on their side, but I realized that keeping it in my files was doing nothing good for people. So here it is, all public, all for the grabbing. This is not the complete code, there are some files I still have, but this should be all the heavy lifting done. 
