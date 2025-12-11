@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ductorix.ai - View School Codes</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #F8F9FA;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-top: 60px;
+            align-items: center;
+            justify-content: flex-start;
+            line-height: 1.6;
+        }
+        a { outline-offset: 2px; text-decoration: none; color: #007bff; }
+        a:focus, button:focus, input:focus, select:focus { outline: none; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #4267B2;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+        .nav-brand {
+            color: #fff;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #fff;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        #logoutButton {
+            background-color: #dc3545;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #logoutButton:hover {
+            background-color: #c82333;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .message.error { background-color: #f8d7da; color: #721c24; }
+        .message.success { background-color: #d4edda; color: #155724; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 0.95em; }
+        th { background-color: #f2f2f2; font-weight: 600; color: #555; text-transform: uppercase; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f0f0f0; }
+
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #4267B2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 20px;
+            font-size: 1.05em;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover { background-color: #365899; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">Ductorix.ai Admin</div>
+        <ul class="nav-links">
+            <li><a href="admin-generate-school-code.html">Generate School Code</a></li>
+            <li><a href="admin-view-school-codes.html" class="active">Admin Dashboard</a></li>
+            <li><a href="add-teacher.html">Add Teacher</a></li>
+            <li><a href="admin-users-overview.html">Users Overview</a></li>
+            <li><a href="index.html" id="logoutButton">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>View School Codes</h1>
+        <div id="tableMessage" class="message" style="display:none;"></div>
+        <button class="button" onclick="window.location.href='/admin-generate-school-code.html'">Generate New School Code</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>SCHOOL NAME</th>
+                    <th>CITY</th>
+                    <th>STATE</th>
+                    <th>PLAN TYPE</th>
+                    <th>STUDENT LIMIT</th>
+                    <th>REGISTRATION CODE</th>
+                    <th>CREATED AT</th>
+                </tr>
+            </thead>
+            <tbody id="schoolCodesTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const tableMessage = document.getElementById('tableMessage');
+        const logoutButton = document.getElementById('logoutButton');
+
+        function displayTableMessage(message, isError) {
+            tableMessage.textContent = message;
+            tableMessage.className = `message ${isError ? 'error' : 'success'}`;
+            tableMessage.style.display = message ? 'block' : 'none';
+        }
+
+        async function fetchSchoolCodes() {
+            displayTableMessage('Loading school codes...', false);
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/school-codes`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const tableBody = document.getElementById('schoolCodesTableBody');
+                    tableBody.innerHTML = '';
+
+                    if (data.length === 0) {
+                        const noDataRow = tableBody.insertRow();
+                        noDataRow.insertCell().colSpan = 7;
+                        noDataRow.cells[0].textContent = 'No school codes found.';
+                        noDataRow.cells[0].style.textAlign = 'center';
+                        displayTableMessage('', false);
+                    } else {
+                        data.forEach(codeEntry => {
+                            const row = tableBody.insertRow();
+                            row.insertCell().textContent = codeEntry.school_name || 'N/A';
+                            row.insertCell().textContent = codeEntry.city || 'N/A';
+                            row.insertCell().textContent = codeEntry.state || 'N/A';
+                            row.insertCell().textContent = codeEntry.plan_type || 'N/A';
+                            row.insertCell().textContent = codeEntry.student_limit || 'N/A';
+                            row.insertCell().textContent = codeEntry.registration_code || 'N/A';
+                            row.insertCell().textContent = codeEntry.created_at ? new Date(codeEntry.created_at).toLocaleString() : 'N/A';
+                        });
+                        displayTableMessage('', false);
+                    }
+                } else {
+                    displayTableMessage(data.error || 'Failed to fetch school codes.', true);
+                }
+            } catch (error) {
+                console.error('Error fetching school codes:', error);
+                displayTableMessage('Failed to fetch school codes due to a network error.', true);
+            }
+        }
+
+        logoutButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/logout`);
+                if (response.ok) {
+                    sessionStorage.clear();
+                    window.location.href = '/login.html';
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Logout failed.');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('An error occurred during logout.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userRole = sessionStorage.getItem('user_role');
+            console.log('Role found on this page:', userRole);
+            if (!userRole) {
+                displayTableMessage('You are not logged in. Redirecting...', true);
+                setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+                return;
+            }
+            if (userRole !== 'admin' && userRole !== 'owner') {
+                displayTableMessage('You do not have permission to view this page. Redirecting...', true);
+                setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+                return;
+            }
+            fetchSchoolCodes();
+        });
+    </script>
+</body>
+</html>

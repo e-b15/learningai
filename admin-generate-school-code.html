@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ductorix.ai - Generate School Code</title>
+    <style>
+        /* Basic Reset & Body Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F8F9FA;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-top: 60px;
+            align-items: center;
+            justify-content: flex-start;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        /* Links & Focus States */
+        a {
+            outline-offset: 2px;
+            text-decoration: none;
+            color: black;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        button:focus,
+        input:focus,
+        select:focus,
+        a:focus {
+            outline: none;
+        }
+
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #4267B2;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            z-index: 1000;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            font-weight: 700;
+        }
+
+        /* Hamburger button */
+        .hamburger {
+            position: absolute;
+            left: 1rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 22px;
+            padding: 0;
+            z-index: 1100;
+        }
+
+        .hamburger span {
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s linear;
+            transform-origin: 1px;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg);
+        }
+
+        /* Centered title */
+        .nav-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+            user-select: none;
+            color: white;
+        }
+
+        /* Logo on right - removed since image doesn't exist */
+        .logo-placeholder {
+            position: absolute;
+            right: 1rem;
+            height: 40px;
+            width: 120px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        /* Dropdown menu */
+        .dropdown-menu {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            background-color: #F8F9FA;
+            width: 180px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1050;
+            border-right: 2px solid #4267B2;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-menu a {
+            padding: 0.9rem 1.2rem;
+            color: black;
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 1px solid #F8F9FA;
+        }
+
+        .dropdown-menu a:hover,
+        .dropdown-menu a:focus-visible {
+            background-color: #4267B2;
+            color: white;
+            outline: none;
+        }
+
+        /* Main Container */
+        .container {
+            background-color: #E4E6EA;
+            border: 1px solid #000;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,255,132,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            margin-top: 50px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #000;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #000;
+            font-weight: 500;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+            font-size: 1em;
+            color: #000;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23667eea%22%20d%3D%22M287%2C197.3L159.2%2C69.5c-4.7-4.7-12.3-4.7-17%2C0L5.4%2C197.3c-4.7%2C4.7-4.7%2C12.3%2C0%2C17l14.1%2C14.1c4.7%2C4.7%2C12.3%2C4.7%2C17%2C0L146.2%2C123c2.3-2.3%2C6.1-2.3%2C8.5%2C0l110.1%2C110.1c4.7%2C4.7%2C12.3%2C4.7%2C17%2C0l14.1-14.1C291.7%2C209.6%2C291.7%2C202%2C287%2C197.3z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 12px;
+            margin-bottom: 5px;
+            margin-top: 5px;
+        }
+
+        /* Remove dropdown arrow for text inputs */
+        input[type="text"],
+        input[type="number"] {
+            background-image: none;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            border-color: #4267B2;
+            box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.25);
+        }
+
+        button[type="submit"] {
+            background-color: #4267B2;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #365899;
+            transform: translateY(-2px);
+        }
+
+        button[type="submit"]:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: 500;
+            word-wrap: break-word;
+        }
+
+        .message.error {
+            background-color: #fdd;
+            color: #c00;
+            border: 1px solid #c00;
+        }
+
+        .message.success {
+            background-color: #dfd;
+            color: #0c0;
+            border: 1px solid #0c0;
+        }
+
+        .schoolName {
+            margin-top: 40px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        input[type="text"]#schoolName {
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        /* Fieldset styling */
+        fieldset.location-group {
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        fieldset.location-group legend {
+            font-weight: 600;
+            color: #000;
+            padding: 0 10px;
+            font-size: 1.1em;
+        }
+
+        .generated-code-display {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #000;
+            display: none;
+            word-break: break-all;
+        }
+
+        .button {
+            background-color: #4267B2;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background-color: #365899;
+        }
+
+        .button-secondary {
+            background-color: #6c757d;
+        }
+
+        .button-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <header role="banner">
+        <nav role="navigation" aria-label="Primary navigation">
+            <button aria-label="Toggle menu" aria-expanded="false" aria-controls="dropdown-menu" class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="nav-title">Ductorix.ai Admin</div>
+
+            <!-- Replaced missing logo with placeholder -->
+            <div class="logo-placeholder">Logo</div>
+        </nav>
+
+        <div id="dropdown-menu" class="dropdown-menu" role="menu" aria-label="Main menu">
+            <a href="/admin-users-overview.html" role="menuitem" tabindex="-1">Users Overview</a>
+            <a href="/admin-view-school-codes.html" role="menuitem" tabindex="-1">View School Codes</a>
+            <a href="login.html" id="logoutButton" role="menuitem" tabindex="-1">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Generate School Code</h1>
+        <form id="generateCodeForm">
+            <!-- Added missing Plan Type field -->
+            <div class="form-group">
+                <label for="planType">Plan Type</label>
+                <select id="planType" name="planType" required>
+                    <option value="standard">Standard</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="studentLimit">Student Limit:</label>
+                <input type="number" id="studentLimit" name="studentLimit" value="50" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="schoolName">School Name:</label>
+                <input type="text" id="schoolName" name="schoolName" placeholder="Enter school name (e.g., North High School)" required>
+            </div>
+            
+
+
+            <div class="form-group">
+                <fieldset class="location-group">
+                    <legend>City - State</legend>
+                    <label for="city">City:</label>
+                    <input type="text" id="city" name="city" placeholder="Enter city (e.g., Fond du Lac)" required>
+                    <label for="state">State (e.g., WI):</label>
+                    <input type="text" id="state" name="state" placeholder="Enter state (e.g., WI)" maxlength="2" required>
+                </fieldset>
+            </div>
+            <button type="submit" id="generateButton">Generate Code</button>
+        </form>
+        <div id="formMessage" class="message" style="display: none;"></div>
+        <div id="generatedCodeDisplay" class="generated-code-display"></div>
+    </div>
+
+
+
+<script>
+    const generateCodeForm = document.getElementById('generateCodeForm');
+    const formMessage = document.getElementById('formMessage');
+    const generateButton = document.getElementById('generateButton');
+    const hamburger = document.getElementById('hamburger');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // --- HAMBURGER MENU LOGIC ---
+    hamburger.addEventListener('click', () => {
+        const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+        hamburger.setAttribute('aria-expanded', String(!isExpanded));
+        hamburger.classList.toggle('active');
+        dropdownMenu.classList.toggle('show');
+    });
+
+    window.addEventListener('click', (e) => {
+        if (!hamburger.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            hamburger.setAttribute('aria-expanded', 'false');
+            hamburger.classList.remove('active');
+            dropdownMenu.classList.remove('show');
+        }
+    });
+
+    // --- FORM SUBMISSION LOGIC ---
+    generateCodeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        generateButton.disabled = true;
+        generateButton.textContent = 'Generating...';
+        formMessage.style.display = 'none';
+
+        // ### START: FIX ###
+        // Corrected the getElementById calls to match your HTML form's IDs ('city' and 'state')
+        const payload = {
+            planType: document.getElementById('planType').value,
+            studentLimit: parseInt(document.getElementById('studentLimit').value, 10),
+            schoolName: document.getElementById('schoolName').value.trim(),
+            schoolCity: document.getElementById('city').value.trim(),
+            schoolState: document.getElementById('state').value.trim()
+        };
+        // ### END: FIX ###
+
+        // Basic validation
+        if (!payload.schoolName || !payload.schoolCity || !payload.schoolState) {
+            formMessage.textContent = 'School Name, City, and State are required.';
+            formMessage.className = 'message error';
+            formMessage.style.display = 'block';
+            generateButton.disabled = false;
+            generateButton.textContent = 'Generate Code';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/generate-school-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                formMessage.innerHTML = `Success! School "${data.school_name}" created with code: <strong style="font-size: 1.2em;">${data.school_code}</strong>`;
+                formMessage.className = 'message success';
+                generateCodeForm.reset();
+            } else {
+                formMessage.textContent = data.error || 'An error occurred.';
+                formMessage.className = 'message error';
+            }
+            formMessage.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error:', error);
+            formMessage.textContent = 'A network error occurred. Please try again.';
+            formMessage.className = 'message error';
+        } finally {
+            generateButton.disabled = false;
+            generateButton.textContent = 'Generate Code';
+        }
+    });
+
+    // --- LOGOUT AND AUTHORIZATION LOGIC ---
+    logoutButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await fetch('/api/logout');
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        } catch (error) {
+            console.error('Logout error:', error);
+            sessionStorage.clear(); // Also clear session on error
+            window.location.href = '/login.html';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const userRole = sessionStorage.getItem('user_role');
+        if (userRole !== 'admin' && userRole !== 'owner') {
+            formMessage.textContent = 'You do not have permission to view this page. Redirecting...';
+            formMessage.className = 'message error';
+            formMessage.style.display = 'block';
+            setTimeout(() => { window.location.href = '/login.html'; }, 2000);
+            generateButton.disabled = true; // Disable form if not authorized
+        }
+    });
+</script>
+
+
+</body>
+</html>

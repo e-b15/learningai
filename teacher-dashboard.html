@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Ductorix.ai</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+            padding-top: 60px;
+            line-height: 1.6;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: #4267B2;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+
+        .nav-brand {
+            font-size: 1.3rem;
+            font-weight: 550;
+            color: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .logout-btn {
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background-color: #E4E6EA;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #000;
+        }
+
+        .welcome-section p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* Navigation Menu */
+        .dashboard-nav {
+            background-color: #E4E6EA;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .nav-card {
+            border-radius: 20px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-card.active {
+            border-color: #4267B2;
+            background-color: #4267B2;
+            color: #fff;
+        }
+
+        .nav-card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .nav-card-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-card-desc {
+            font-size: 0.9rem;
+            color: #666;
+            opacity: 0.8;
+        }
+
+        .nav-card.active .nav-card-desc {
+            color: #fff;
+        }
+
+        /* Content Section */
+        .content-section {
+            background-color: #E4E6EA;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 400px;
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .content-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background-color: #4267B2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #365899;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        /* Class Management */
+        .class-selector-container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .class-selector {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .class-selector label {
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .class-selector select {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .class-selector select:focus {
+            outline: none;
+            border-color: #4267B2;
+        }
+
+        .class-code-display {
+            background: linear-gradient(135deg, #4267B2 0%, #365899 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .class-code-display.show {
+            display: flex;
+        }
+
+        .code-info h4 {
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .code-value {
+            background-color: rgba(255,255,255,0.9);
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-left: 1rem;
+        }
+
+        .copy-btn {
+            background-color: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: rgba(255,255,255,0.3);
+        }
+
+        /* Roster Table */
+        .roster-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .student-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* Controls */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .control-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .control-card h4 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #4267B2;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background-color: #f8f9fa;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: #4267B2;
+            transform: translateY(-2px);
+            background-color: #4267B2;
+        }
+
+        .stat-card:hover .stat-label,
+        .stat-card:hover .stat-value {
+            color: #fff;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #222;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            color: #222;
+            font-style: italic;
+            padding: 3rem;
+            background-color: #f8f9fa;
+            border-radius: 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1100;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background-color: #dc3545;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .class-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .class-code-display {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            nav {
+                padding: 0 1rem;
+            }
+
+            .welcome-section h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Form styles */
+        select, input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">Ductorix.ai Teacher Dashboard</div>
+        <div class="user-info">
+            <span class="user-name" id="teacherName">Teacher</span>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h1 id="welcomeMessage">Welcome!</h1>
+            <p>Manage your classes, students, and AI settings from one unified dashboard.</p>
+        </div>
+
+        <div class="dashboard-nav">
+            <div class="nav-grid">
+                <div class="nav-card active" data-section="overview">
+                    <span class="nav-card-icon">📊</span>
+                    <div class="nav-card-title">Overview</div>
+                    <div class="nav-card-desc">Quick stats and summary</div>
+                </div>
+                <div class="nav-card" data-section="classes">
+                    <span class="nav-card-icon">📋</span>
+                    <div class="nav-card-title">Class Management</div>
+                    <div class="nav-card-desc">Create and manage classes</div>
+                </div>
+                <div class="nav-card" data-section="students">
+                    <span class="nav-card-icon">👥</span>
+                    <div class="nav-card-title">Student Management</div>
+                    <div class="nav-card-desc">View roster and manage students</div>
+                </div>
+                <div class="nav-card" data-section="controls">
+                    <span class="nav-card-icon">⚙️</span>
+                    <div class="nav-card-title">AI & Class Controls</div>
+                    <div class="nav-card-desc">Configure AI settings and controls</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section active" id="overview">
+            <div class="content-header">
+                <h2 class="content-title">📊 Dashboard Overview</h2>
+            </div>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalClasses">0</div>
+                    <div class="stat-label">Total Classes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalStudents">0</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activeClasses">0</div>
+                    <div class="stat-label">Active Classes</div>
+                </div>
+            </div>
+            
+            <div class="empty-state" style="margin-top: 2rem;">
+                <div class="empty-state-icon">🎯</div>
+                <h3>Welcome to your teaching dashboard!</h3>
+                <p>Use the navigation above to manage your classes, students, and AI settings.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="classes">
+            <div class="content-header">
+                <h2 class="content-title">📋 Class Management</h2>
+                <div>
+                    <button class="btn btn-primary" id="createClassBtn">+ Create New Class</button>
+                </div>
+            </div>
+            
+            <div class="class-selector-container">
+                <div class="class-selector">
+                    <label for="classSelect">Select Class:</label>
+                    <select id="classSelect">
+                        <option value="">Choose a class...</option>
+                    </select>
+                    <button id="deleteClassBtn" class="btn btn-danger hidden">🗑️ Delete Class</button>
+                </div>
+                
+                <div class="class-code-display" id="classCodeDisplay">
+                    <div class="code-info">
+                        <h4>🔗 Class Join Code</h4>
+                        <p>Share this code with your students</p>
+                    </div>
+                    <div>
+                        <span class="code-value" id="codeValue">------</span>
+                        <button class="copy-btn" id="copyBtn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="noClassSelectedMessage" class="empty-state">
+                <div class="empty-state-icon">📚</div>
+                <h3>Select a class to manage</h3>
+                <p>Choose from the dropdown above or create a new class to get started.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="students">
+            <div class="content-header">
+                <h2 class="content-title">👥 Student Management</h2>
+                <div>
+                    <button id="addStudentBtn" class="btn btn-success hidden">+ Add Student</button>
+                </div>
+            </div>
+            
+            <div id="rosterContainer" class="hidden">
+                <div class="roster-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Username</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rosterTableBody">
+                            <tr>
+                                <td colspan="3" class="empty-state">Select a class to view roster</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="noStudentsMessage" class="empty-state">
+                <div class="empty-state-icon">👨‍🎓</div>
+                <h3>No class selected</h3>
+                <p>Select a class from Class Management to view and manage students.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="controls">
+            <div class="content-header">
+                <h2 class="content-title">⚙️ AI & Class Controls</h2>
+            </div>
+            
+            <div id="controlsContent" class="hidden">
+                <div class="controls-grid">
+                    <div class="control-card">
+                        <h4>Class Settings</h4>
+                        <div class="control-group">
+                            <span>Lockdown Mode</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="lockdownToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                            <span id="lockdownStatus">Prevents students from accessing unauthorized content</span>
+                        </p>
+                    </div>
+                    
+                    <div class="control-card">
+                        <h4>AI Configuration</h4>
+                        <form id="aiControlsForm">
+                            <div class="control-group">
+                                <label for="directness">Response Style:</label>
+                                <select id="directness">
+                                    <option value="Guided">Guided (Tutor-style)</option>
+                                    <option value="Balanced">Balanced</option>
+                                    <option value="Direct">Direct Answer</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="creativity">Creativity Level:</label>
+                                <select id="creativity">
+                                    <option value="0.2">Low</option>
+                                    <option value="0.7">Medium</option>
+                                    <option value="1.0">High</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <span>Require Evidence</span>
+                                <input type="checkbox" id="evidenceInclusion" />
+                            </div>
+                            <div class="control-group">
+                                <span>Anti-Cheat Mode</span>
+                                <input type="checkbox" id="antiCheatSwitch" />
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save AI Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="noControlsMessage" class="empty-state">
+                <div class="empty-state-icon">⚙️</div>
+                <h3>No class selected</h3>
+                <p>Select a class from Class Management to configure AI and class settings.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        class TeacherDashboard {
+            constructor() {
+                this.currentClassId = null;
+                this.allClasses = [];
+                this.currentSection = 'overview';
+                this.init();
+            }
+
+            async init() {
+                await this.loadUserInfo();
+                await this.loadClasses();
+                this.bindEvents();
+                this.showSection('overview');
+            }
+
+            async loadUserInfo() {
+                try {
+                    const response = await fetch('/api/user_info');
+                    const data = await response.json();
+                    if (response.ok) {
+                        document.getElementById('teacherName').textContent = data.user_name;
+                        document.getElementById('welcomeMessage').textContent = `Welcome, ${data.user_name}!`;
+                    }
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                    document.getElementById('teacherName').textContent = 'Teacher';
+                    document.getElementById('welcomeMessage').textContent = 'Welcome, Teacher!';
+                }
+            }
+
+            async loadClasses() {
+                try {
+                    const response = await fetch('/api/teacher/classes');
+                    const classes = await response.json();
+                    
+                    if (response.ok) {
+                        this.allClasses = classes;
+                        this.populateClassSelector(classes);
+                        this.updateStats();
+                    } else {
+                        console.error('Failed to load classes:', classes);
+                        this.showToast('Error loading classes', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error loading classes:', error);
+                    this.showToast('Error loading classes', 'error');
+                }
+            }
+
+            populateClassSelector(classes) {
+                const select = document.getElementById('classSelect');
+                select.innerHTML = '<option value="">Choose a class...</option>';
+                
+                classes.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls.class_id;
+                    option.textContent = cls.class_name;
+                    option.dataset.classCode = cls.class_code || 'N/A';
+                    select.appendChild(option);
+                });
+            }
+
+            updateStats() {
+                const totalClasses = this.allClasses.length;
+                const activeClasses = this.allClasses.length;
+                
+                document.getElementById('totalClasses').textContent = totalClasses;
+                document.getElementById('activeClasses').textContent = activeClasses;
+            }
+
+            showSection(sectionId) {
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Remove active class from nav cards
+                document.querySelectorAll('.nav-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                
+                // Show selected section
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Highlight active nav card
+                document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+                
+                this.currentSection = sectionId;
+                
+                // Load section-specific data if class is selected
+                if (this.currentClassId) {
+                    if (sectionId === 'students') {
+                        this.loadRoster();
+                    } else if (sectionId === 'controls') {
+                        this.loadAIControls();
+                        this.loadLockdownStatus();
+                    }
+                }
+            }
+
+            async handleClassSelection(classId, classCode) {
+                this.currentClassId = classId;
+                
+                if (classId) {
+                    this.showClassCode(classCode);
+                    this.showClassControls();
+                    
+                    // Load data for current section
+                    if (this.currentSection === 'students') {
+                        await this.loadRoster();
+                    } else if (this.currentSection === 'controls') {
+                        await this.loadAIControls();
+                        await this.loadLockdownStatus();
+                    }
+                } else {
+                    this.hideClassCode();
+                    this.hideClassControls();
+                }
+            }
+
+            showClassCode(code) {
+                const display = document.getElementById('classCodeDisplay');
+                const codeValue = document.getElementById('codeValue');
+                codeValue.textContent = code || 'N/A';
+                display.classList.add('show');
+                document.getElementById('noClassSelectedMessage').style.display = 'none';
+            }
+
+            hideClassCode() {
+                document.getElementById('classCodeDisplay').classList.remove('show');
+                document.getElementById('noClassSelectedMessage').style.display = 'block';
+            }
+
+            showClassControls() {
+                document.getElementById('deleteClassBtn').classList.remove('hidden');
+                document.getElementById('addStudentBtn').classList.remove('hidden');
+                document.getElementById('rosterContainer').classList.remove('hidden');
+                document.getElementById('controlsContent').classList.remove('hidden');
+                document.getElementById('noStudentsMessage').style.display = 'none';
+                document.getElementById('noControlsMessage').style.display = 'none';
+            }
+
+            hideClassControls() {
+                document.getElementById('deleteClassBtn').classList.add('hidden');
+                document.getElementById('addStudentBtn').classList.add('hidden');
+                document.getElementById('rosterContainer').classList.add('hidden');
+                document.getElementById('controlsContent').classList.add('hidden');
+                document.getElementById('noStudentsMessage').style.display = 'block';
+                document.getElementById('noControlsMessage').style.display = 'block';
+            }
+
+            async loadRoster() {
+                if (!this.currentClassId) return;
+
+                try {
+                    const response = await fetch(`/api/teacher/roster?class_id=${this.currentClassId}`);
+                    const roster = await response.json();
+                    
+                    const tbody = document.getElementById('rosterTableBody');
+                    if (response.ok && roster.length > 0) {
+                        tbody.innerHTML = roster.map(student => `
+                            <tr>
+                                <td>${student.user_name}</td>
+                                <td>@${student.username}</td>
+                                <td class="student-actions">
+                                    <button class="btn btn-secondary btn-sm" onclick="dashboard.resetPassword(${student.user_id})">Reset</button>
+                                    <button class="btn btn-danger btn-sm" onclick="dashboard.removeStudent(${student.user_id})">Remove</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                        
+                        document.getElementById('totalStudents').textContent = roster.length;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No students enrolled yet</td></tr>';
+                        document.getElementById('totalStudents').textContent = '0';
+                    }
+                } catch (error) {
+                    console.error('Error loading roster:', error);
+                    this.showToast('Error loading roster', 'error');
+                }
+            }
+
+            async loadAIControls() {
+                if (!this.currentClassId) return;
+
+                try {
+                    const response = await fetch(`/api/teacher/classes/${this.currentClassId}/ai-controls`);
+                    if (response.ok) {
+                        const controls = await response.json();
+                        document.getElementById('directness').value = controls.ai_directness || 'Balanced';
+                        document.getElementById('evidenceInclusion').checked = controls.ai_evidence_inclusion || false;
+                        document.getElementById('creativity').value = controls.ai_creativity || '0.7';
+                        document.getElementById('antiCheatSwitch').checked = controls.ai_anti_cheat || false;
+                    }
+                } catch (error) {
+                    console.error('Error loading AI controls:', error);
+                    this.showToast('Error loading AI controls', 'error');
+                }
+            }
+
+            async loadLockdownStatus() {
+                if (!this.currentClassId) return;
+
+                try {
+                    // Use the new, correct endpoint for GET requests
+                    const response = await fetch(`/api/teacher/classes/${this.currentClassId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('lockdownToggle').checked = data.is_locked_down || false;
+                        this.updateLockdownStatus(data.is_locked_down || false);
+                    }
+                } catch (error) {
+                    console.error('Error loading lockdown status:', error);
+                }
+            }
+
+            updateLockdownStatus(isEnabled) {
+                const statusText = document.getElementById('lockdownStatus');
+                statusText.textContent = isEnabled ? 
+                    'Active - Students cannot access unauthorized content' : 
+                    'Inactive - Students have normal access';
+            }
+
+            async deleteClass() {
+                if (!this.currentClassId) return;
+                
+                const className = document.getElementById('classSelect').selectedOptions[0].textContent;
+                if (confirm(`Delete "${className}" and all its students? This cannot be undone.`)) {
+                    try {
+                        const response = await fetch(`/api/teacher/classes/${this.currentClassId}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            this.showToast('Class deleted successfully');
+                            await this.loadClasses();
+                            this.currentClassId = null;
+                            this.hideClassCode();
+                            this.hideClassControls();
+                            document.getElementById('classSelect').value = '';
+                        } else {
+                            const data = await response.json();
+                            this.showToast(data.error || 'Failed to delete class', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Error deleting class', 'error');
+                        console.error('Error deleting class:', error);
+                    }
+                }
+            }
+
+            async addStudent() {
+                const studentName = prompt('Enter student name:');
+                if (!studentName || studentName.trim() === '' || !this.currentClassId) return;
+
+                try {
+                    const response = await fetch('/api/teacher/add-student', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            studentName: studentName.trim(),
+                            classId: this.currentClassId
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        this.showToast('Student added successfully');
+                        alert(`Student created!\nUsername: ${data.username}\nPassword: ${data.password}`);
+                        await this.loadRoster();
+                    } else {
+                        this.showToast(data.error || 'Failed to add student', 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error adding student', 'error');
+                    console.error('Error adding student:', error);
+                }
+            }
+
+            async toggleLockdown(isEnabled) {
+                if (!this.currentClassId) return;
+
+                try {
+                    const response = await fetch(`/api/teacher/classes/${this.currentClassId}/lockdown`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_locked_down: isEnabled })
+                    });
+
+                    if (response.ok) {
+                        this.updateLockdownStatus(isEnabled);
+                        this.showToast(`Lockdown ${isEnabled ? 'enabled' : 'disabled'}`);
+                        return true;
+                    } else {
+                        const data = await response.json();
+                        this.showToast(data.error || 'Failed to update lockdown', 'error');
+                        return false;
+                    }
+                } catch (error) {
+                    this.showToast('Error updating lockdown', 'error');
+                    console.error('Error updating lockdown:', error);
+                    return false;
+                }
+            }
+
+            async saveAIControls(formData) {
+                if (!this.currentClassId) return;
+
+                try {
+                    const response = await fetch(`/api/teacher/classes/${this.currentClassId}/ai-controls`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (response.ok) {
+                        this.showToast('AI settings saved successfully');
+                    } else {
+                        const data = await response.json();
+                        this.showToast(data.error || 'Failed to save AI settings', 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error saving AI settings', 'error');
+                    console.error('Error saving AI settings:', error);
+                }
+            }
+
+            async resetPassword(userId) {
+                try {
+                    const response = await fetch(`/api/reset-password/${userId}`, {
+                        method: 'POST'
+                    });
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        alert(`Password reset!\nNew password: ${data.new_password}`);
+                    } else {
+                        this.showToast(data.error || 'Failed to reset password', 'error');
+                    }
+                } catch (error) {
+                    this.showToast('Error resetting password', 'error');
+                    console.error('Error resetting password:', error);
+                }
+            }
+
+            async removeStudent(userId) {
+                if (confirm('Remove this student from the class?')) {
+                    try {
+                        const response = await fetch(`/api/delete-user/${userId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            this.showToast('Student removed');
+                            await this.loadRoster();
+                        } else {
+                            const data = await response.json();
+                            this.showToast(data.error || 'Failed to remove student', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Error removing student', 'error');
+                        console.error('Error removing student:', error);
+                    }
+                }
+            }
+
+            copyClassCode() {
+                const code = document.getElementById('codeValue').textContent;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(code).then(() => {
+                        this.showToast('Class code copied!');
+                    }).catch(() => {
+                        this.showToast('Failed to copy code', 'error');
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = code;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        this.showToast('Class code copied!');
+                    } catch (err) {
+                        this.showToast('Failed to copy code', 'error');
+                    }
+                    document.body.removeChild(textArea);
+                }
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            bindEvents() {
+                // Navigation cards
+                document.querySelectorAll('.nav-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const section = card.dataset.section;
+                        this.showSection(section);
+                    });
+                });
+
+                // Class selection
+                document.getElementById('classSelect').addEventListener('change', (e) => {
+                    const selectedOption = e.target.selectedOptions[0];
+                    const classCode = selectedOption ? selectedOption.dataset.classCode : null;
+                    this.handleClassSelection(e.target.value, classCode);
+                });
+
+                // Create class button
+                document.getElementById('createClassBtn').addEventListener('click', () => {
+                    window.location.href = '/add-hour.html';
+                });
+
+                // Copy class code
+                document.getElementById('copyBtn').addEventListener('click', () => {
+                    this.copyClassCode();
+                });
+
+                // Add student button
+                document.getElementById('addStudentBtn').addEventListener('click', () => {
+                    this.addStudent();
+                });
+
+                // Delete class button
+                document.getElementById('deleteClassBtn').addEventListener('click', () => {
+                    this.deleteClass();
+                });
+
+                // Logout button
+                document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await fetch('/api/logout');
+                        window.location.href = '/login.html';
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        window.location.href = '/login.html';
+                    }
+                });
+
+                // Lockdown toggle
+                document.getElementById('lockdownToggle').addEventListener('change', async (e) => {
+                    const success = await this.toggleLockdown(e.target.checked);
+                    if (!success) {
+                        e.target.checked = !e.target.checked;
+                    }
+                });
+
+                // AI Controls form
+                document.getElementById('aiControlsForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const formData = {
+                        directness: document.getElementById('directness').value,
+                        evidenceInclusion: document.getElementById('evidenceInclusion').checked,
+                        creativity: parseFloat(document.getElementById('creativity').value),
+                        antiCheat: document.getElementById('antiCheatSwitch').checked
+                    };
+                    
+                    await this.saveAIControls(formData);
+                });
+            }
+        }
+
+        // Initialize dashboard
+        let dashboard;
+        document.addEventListener('DOMContentLoaded', () => {
+            dashboard = new TeacherDashboard();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Boa - Add User</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; padding-top: 80px; }
+        .container { max-width: 600px; margin: 20px auto; padding: 40px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 25px; }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        label { font-weight: bold; margin-bottom: -5px; }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        button { background-color: #4267b3; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; }
+        button:hover { background-color: #4267b3; }
+        nav { background-color: #4267b3; padding: 15px 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 24px; font-weight: 550; color: #fff; }
+        .nav-links { list-style: none; display: flex; gap: 20px; }
+        .nav-links a { color: #fff; text-decoration: none; font-weight: bold; padding: 8px 12px; border-radius: 4px; }
+        .nav-links a.active { background-color: #4267b3; color: white; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 10px 0; color: #222;}
+        .message { padding: 15px; margin-bottom: 20px; text-align: center; border-radius: 5px; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .password-toggle { position: relative; }
+        .toggle-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">Ductorix.ai Register</div>
+        <ul class="nav-links">
+            <li><a href="/add-teacher.html" class="active">Add Admin</a></li>
+            <li><a href="/admin-users-overview.html">Users Overview</a></li>
+            <li><a href="/logout" id="logoutButton">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Add New Teacher or Principal</h1>
+        <div id="formMessage" class="message" style="display:none;"></div>
+
+        <form id="addUserForm">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" name="fullName" required />
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required />
+
+            <label for="password">Password:</label>
+            <div class="password-toggle">
+                <input type="password" id="password" name="password" required minlength="6" />
+                <button type="button" class="toggle-btn" id="togglePassword">Show</button>
+            </div>
+
+            <label for="schoolCode">School Activation Code:</label>
+            <input type="text" id="schoolCode" name="schoolCode" required />
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="isPrincipal" name="isPrincipal" />
+                <label for="isPrincipal">Make this user a Principal (School Admin)</label>
+            </div>
+
+            <button type="submit" id="addUserButton">Create Account</button>
+        </form>
+    </div>
+
+    <script>
+        // Password toggle functionality
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.getElementById('togglePassword');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = 'Hide';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = 'Show';
+            }
+        });
+
+        document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const schoolCode = document.getElementById('schoolCode').value.trim();
+            const isPrincipal = document.getElementById('isPrincipal').checked;
+            
+            // Basic validation
+            if (!fullName || !email || !password || !schoolCode) {
+                showMessage('All fields are required.', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters long.', 'error');
+                return;
+            }
+
+            const payload = { 
+                fullName, 
+                email, 
+                password, 
+                schoolCode, 
+                isPrincipal 
+            };
+
+            try {
+                const response = await fetch('/api/add-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const userType = isPrincipal ? 'Principal' : 'Teacher';
+                    showMessage(`${userType} account created successfully for ${fullName}!`, 'success');
+                    document.getElementById('addUserForm').reset();
+                } else {
+                    showMessage(data.error || 'Failed to create user.', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                showMessage('An error occurred while creating the account. Please try again.', 'error');
+            }
+        });
+        
+        function showMessage(text, type) {
+            const formMessage = document.getElementById('formMessage');
+            formMessage.textContent = text;
+            formMessage.className = `message ${type}`;
+            formMessage.style.display = 'block';
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    formMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        document.getElementById('logoutButton').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                sessionStorage.clear();
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Still redirect even if logout fails
+                sessionStorage.clear();
+                window.location.href = '/login.html';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <body>
+   <!-- 
+    Header: #4267B2
+    Plate (light blue): #E7F3FF
+    Plate (light gray): #E4E6EA
+    background: #F8F9FA
+    Text: #000
+    -->
+    </body>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ductorix.ai - Add Teacher</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #F8F9FA; color: #333; line-height: 1.6; padding-top: 80px; }
+        .container { max-width: 600px; margin: 20px auto; padding: 40px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 25px; }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        label { font-weight: bold; margin-bottom: -5px; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        button { background-color: #4267B2; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; }
+        button:disabled { background-color: #aaa; }
+            nav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                background-color: #E4E6EA;
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: black;
+                z-index: 1000;
+                box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            }
+        .nav-brand { font-size: 24px; font-weight: bold; color: white; }
+        .nav-links { list-style: none; display: flex; gap: 30px; margin-right: 50px; align-items: left;}
+        .nav-links a { color: #fff; text-decoration: none; font-weight: bold; padding: 8px 12px; border-radius: 4px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+        .message { padding: 15px; margin-bottom: 20px; text-align:center; border-radius: 5px; display: none; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .success { background-color: #d4edda; color: #155724; }
+        .logo-link { color: white; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand"><a href='index.html' class="logo-link">Ductorix.ai</a></div>
+        <ul class="nav-links">
+            <li><a href="admin-generate-school-code.html">Generate School Code</a></li>
+            <li><a href="admin-view-school-codes.html">Admin Dashboard</a></li>
+            <li><a href="add-teacher.html" class="active">Add Teacher</a></li>
+            <li><a href="admin-users-overview.html">Users Overview</a></li>
+            <li><a href="logout" id="logoutButton">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Add New Teacher Account</h1>
+        <p class="message" id="formMessage"></p>
+        <form id="addTeacherForm">
+            <label for="username">Teacher's Email (Username):</label>
+            <input type="email" id="username" name="username" required />
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required />
+
+            <label for="full_name">Full Name:</label>
+            <input type="text" id="full_name" name="full_name" required />
+
+            <label for="school_id">School ID:</label>
+            <input type="number" id="school_id" name="school_id" required placeholder="Enter School ID" />
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="make_school_admin" name="make_school_admin" />
+                <label for="make_school_admin">Make this user a School Admin</label>
+            </div>
+
+            <button type="submit" id="addTeacherButton">Add Teacher</button>
+        </form>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const addTeacherForm = document.getElementById('addTeacherForm');
+        const formMessage = document.getElementById('formMessage');
+        const addTeacherButton = document.getElementById('addTeacherButton');
+
+        function displayFormMessage(message, isError = false) {
+            formMessage.textContent = message;
+            formMessage.className = `message ${isError ? 'error' : 'success'}`;
+            formMessage.style.display = 'block';
+        }
+
+        addTeacherForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            addTeacherButton.disabled = true;
+            addTeacherButton.textContent = 'Adding...';
+            displayFormMessage('', false);
+
+            const payload = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                full_name: document.getElementById('full_name').value,
+                school_id: parseInt(document.getElementById('school_id').value, 10),
+                user_role: document.getElementById('make_school_admin').checked ? 'school_admin' : 'teacher'
+            };
+
+            try {
+                // CORRECTED: This now points to the correct /api/users endpoint
+                const response = await fetch(`${API_BASE_URL}/api/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayFormMessage(data.message || 'User added successfully!', false);
+                    addTeacherForm.reset();
+                } else {
+                    displayFormMessage(data.message || 'Failed to add user.', true);
+                }
+            } catch (error) {
+                console.error('Error adding user:', error);
+                displayFormMessage('An error occurred. Please try again.', true);
+            } finally {
+                addTeacherButton.disabled = false;
+                addTeacherButton.textContent = 'Add Teacher';
+            }
+        });
+
+        // This would need to be fleshed out with a proper logout redirect
+        document.getElementById('logoutButton').addEventListener('click', async (e) => {
+            e.preventDefault();
+            alert('Logout clicked');
+        });
+
+    </script>
+    <footer role="contentinfo" style="background-color: #4267B2; color: #fff; text-align: center; padding: 1.5rem; font-size: 0.9rem; width: 100%; box-sizing: border-box; bottom: 0; left: 0; position: absolute;">
+© 2025 Evan Beaulieu Production. All rights reserved.
+    <div class="small-footer">
+        <p>Ductorix.ai | Version 1</p>
+        <p>Last Updated: July 2025 | Contact: <a href="contact.html" class='footer-link'>Here</a></p>
+    </div>
+
+    <style>
+                .small-footer {
+            font-size: 0.9rem;
+            color: #bbb;
+            margin-top: 0.5rem;
+        }
+
+        .small-footer p {
+            margin: 0.2rem 0;
+        }
+
+        .footer-link {
+            color: #bbb;
+            text-decoration: underline;
+            font-style: italic;
+        }
+
+        footer {
+            margin: 0 0px;
+        }
+    </style>
+
+</footer>
+
+<style>
+    .small-footer {
+        font-size: 0.9rem;
+        color: #bbb;
+        margin-top: 5px;
+        padding: 0px 5px;
+    }
+
+    .footer-link {
+        color: #bbb;
+        text-decoration: underline;
+        font-style: italic;
+
+    }
+</style>
+</footer>
+</body>
+</html>

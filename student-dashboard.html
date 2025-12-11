@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Boa</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; }
+        nav { background-color: #4267B2; padding: 15px 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 1000; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: fixed; width: 100%; top: 0; left: 0; }
+        .nav-brand { font-size: 24px; font-weight: bold; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 15px; }
+        .nav-links a, .nav-links button { color: #fff; text-decoration: none; font-weight: bold; padding: 8px 12px; background: none; border: none; cursor: pointer; }
+        .nav-links button:hover { background-color: #4267B2; border-radius: 4px; }
+        .container { padding-top: 60px; max-width: 1200px; width: 100%; margin: 20px auto; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; flex-grow: 1; padding-bottom: 90px;}
+        .dashboard-header { padding: 20px; border-bottom: 1px solid #eee; text-align: center; }
+        .dashboard-header h1 { font-size: 1.5em; margin-bottom: 5px; min-height: 29px; }
+        .dashboard-header p { color: #666; }
+        .classes-info { padding: 10px 20px; background-color: #f8f9fa; border-bottom: 1px solid #eee; font-size: 0.9em; color: #666; }
+        .classes-list { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; }
+        .class-tag { background-color: #e3f2fd; color: #4267B2; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; }
+        .current-class { background-color: #4caf50; color: white; }
+        .chat-window { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 80%; padding: 10px 15px; border-radius: 18px; line-height: 1.5; white-space: pre-wrap; }
+        .message.user { background-color: #4267B2; color: white; align-self: flex-end; border-bottom-right-radius: 4px; padding-bottom: 12px; }
+        .message.model { background-color: #e9e9eb; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.error { background-color: #f8d7da; color: #721c24; align-self: center; }
+        .message.system { background-color: #d4edda; color: #155724; align-self: center; font-style: italic; }
+        .chat-input-form {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            gap: 10px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0; /* Add this */
+            width: 100%;
+            max-width: 1200px; /* Match the main container's width */
+            margin-left: auto;  /* Add this */
+            margin-right: auto; /* Add this */
+            background-color: white;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            justify-content: center;
+            }
+        .chat-input-form textarea { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 14px; resize: none; font-size: 1em; line-height: 1.5; height: 42px; max-width: 1200px;}
+        .chat-input-form button { background-color: #4267b2; color: white; border: none; border-radius: 50%; width: 42px; height: 42px; font-size: 1.2em; cursor: pointer; transition: background-color 0.3s; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: none; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .modal h2 { text-align: center; margin-bottom: 20px; color: #333; }
+        .modal p { text-align: center; margin-bottom: 20px; color: #666; line-height: 1.6; }
+        .modal input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; margin-bottom: 15px; }
+        .modal button { width: 100%; padding: 12px; background-color: #4267B2; color: white; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; margin-bottom: 10px; }
+        .modal button:hover { background-color: #4267B2; }
+        .modal .btn-secondary { background-color: #6c757d; }
+        .modal .btn-secondary:hover { background-color: #545b62; }
+        .modal .error-message { color: #dc3545; text-align: center; margin-top: 10px; font-size: 0.9em; }
+        
+        /* Join Another Class Button */
+        .join-class-btn { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; transition: background-color 0.3s; }
+        .join-class-btn:hover { background-color: #218838; }
+
+        .message ol, .message ul {
+            padding-left: 15px; /* Pulls the list and its number inside the bubble */
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">Ductorix</div>
+        <div class="nav-links">
+            <button id="joinAnotherClassBtn" class="join-class-btn">+ Join Another Class</button>
+            <a href="/logout" id="logoutButton">Logout</a>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="dashboard-header">
+            <h1 id="cycling-message">Hello!</h1>
+            <p id="schoolInfo">Loading...</p>
+        </div>
+        <div class="classes-info" id="classesInfo" style="display: none;">
+            <div>Your classes:</div>
+            <div class="classes-list" id="classesList"></div>
+        </div>
+        <div class="chat-window" id="chatWindow"></div>
+        <form class="chat-input-form" id="chatForm">
+            <textarea id="chatInput" placeholder="Type your message..." rows="1"></textarea>
+            <button type="submit" id="sendButton">&#10148;</button>
+        </form>
+    </div>
+
+    <!-- Join Class Modal -->
+    <div id="joinClassModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Join a Class</h2>
+            <p id="modalDescription">Enter your class code to join:</p>
+            <input type="text" id="classCodeInput" placeholder="Enter your class code" />
+            <button id="joinClassBtn">Join Class</button>
+            <button id="cancelJoinBtn" class="btn-secondary">Cancel</button>
+            <div id="joinError" class="error-message"></div>
+        </div>
+    </div>
+
+    <script>
+        const chatWindow = document.getElementById('chatWindow');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        const schoolInfo = document.getElementById('schoolInfo');
+        const cyclingMessage = document.getElementById('cycling-message');
+        const joinClassModal = document.getElementById('joinClassModal');
+        const classCodeInput = document.getElementById('classCodeInput');
+        const joinClassBtn = document.getElementById('joinClassBtn');
+        const cancelJoinBtn = document.getElementById('cancelJoinBtn');
+        const joinError = document.getElementById('joinError');
+        const joinAnotherClassBtn = document.getElementById('joinAnotherClassBtn');
+        const classesInfo = document.getElementById('classesInfo');
+        const classesList = document.getElementById('classesList');
+
+        let studentClasses = [];
+        let currentActiveClass = null;
+
+        const messages = [
+            `Hello, ${sessionStorage.getItem('user_name')}!`,
+            "How can I help you today?",
+            "What topic are you studying?",
+            "Ask me anything!",
+        ];
+        let messageIndex = 0;
+        setInterval(() => {
+            cyclingMessage.textContent = messages[messageIndex];
+            messageIndex = (messageIndex + 1) % messages.length;
+        }, 4000);
+
+        const converter = new showdown.Converter();
+
+        function addMessageToChat(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            // Convert Markdown text to HTML
+            const html = converter.makeHtml(text);
+            // Use innerHTML to render the formatted text
+            messageDiv.innerHTML = html;
+
+            chatWindow.appendChild(messageDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function checkEnrollmentStatus() {
+            try {
+                const response = await fetch('/api/student/check-enrollment');
+                const data = await response.json();
+                
+                if (response.ok && !data.is_enrolled) {
+                    // Student is not enrolled in any class, show the modal
+                    showJoinModal(true);
+                    return false;
+                } else if (response.ok) {
+                    // Load student's classes
+                    await loadStudentClasses();
+                    return true;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking enrollment:', error);
+                return true; // Assume enrolled to avoid blocking the interface
+            }
+        }
+
+        async function loadStudentClasses() {
+            try {
+                const response = await fetch('/api/student/classes');
+                if (response.ok) {
+                    const data = await response.json();
+                    studentClasses = data.classes || [];
+                    currentActiveClass = data.current_active_class || null;
+                    updateClassesDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading student classes:', error);
+            }
+        }
+
+        function updateClassesDisplay() {
+            if (studentClasses.length > 0) {
+                classesInfo.style.display = 'block';
+                classesList.innerHTML = '';
+                
+                studentClasses.forEach(cls => {
+                    const tag = document.createElement('div');
+                    tag.className = 'class-tag';
+                    if (currentActiveClass && currentActiveClass.class_id === cls.class_id) {
+                        tag.classList.add('current-class');
+                        tag.textContent = `${cls.class_name} (Active)`;
+                    } else {
+                        tag.textContent = cls.class_name;
+                    }
+                    classesList.appendChild(tag);
+                });
+                
+                // Show active class info
+                if (currentActiveClass) {
+                    addMessageToChat(`You're currently in ${currentActiveClass.class_name} class period. AI settings are controlled by your teacher.`, 'system');
+                }
+            }
+        }
+
+        function showJoinModal(isFirstTime = false) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDescription = document.getElementById('modalDescription');
+            
+            if (isFirstTime) {
+                modalTitle.textContent = 'Join a Class';
+                modalDescription.textContent = 'It looks like you\'re not enrolled in any class yet. Please enter your class code to join:';
+                cancelJoinBtn.textContent = 'I\'ll do this later';
+            } else {
+                modalTitle.textContent = 'Join Another Class';
+                modalDescription.textContent = 'Enter the class code for the additional class you want to join:';
+                cancelJoinBtn.textContent = 'Cancel';
+            }
+            
+            joinClassModal.style.display = 'block';
+            classCodeInput.value = '';
+            joinError.textContent = '';
+        }
+
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/api/chat-history');
+                const history = await response.json();
+                chatWindow.innerHTML = '';
+                if (history.length === 0) {
+                    addMessageToChat("Welcome! Let's start our conversation.", 'model');
+                } else {
+                    history.forEach(item => {
+                        addMessageToChat(item.query_text, 'user');
+                        addMessageToChat(item.response_text, 'model');
+                    });
+                }
+            } catch (error) {
+                addMessageToChat("Could not load previous conversation.", 'error');
+            }
+        }
+
+        async function loadSchoolInfo() {
+            try {
+                const response = await fetch('/api/student/school-info');
+                const data = await response.json();
+                if (response.ok) {
+                    schoolInfo.textContent = `School: ${data.school_name}`;
+                } else {
+                    schoolInfo.textContent = "Not enrolled in a school yet";
+                }
+            } catch (error) { 
+                schoolInfo.textContent = "Error loading school data."; 
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isEnrolled = await checkEnrollmentStatus();
+            
+            if (isEnrolled) {
+                loadChatHistory();
+                loadSchoolInfo();
+            } else {
+                // Show a message in chat that they need to join a class first
+                addMessageToChat("Please join a class to start using the AI assistant.", 'model');
+            }
+        });
+
+        // Join Another Class button
+        joinAnotherClassBtn.addEventListener('click', () => {
+            showJoinModal(false);
+        });
+
+        // Join class modal functionality
+        joinClassBtn.addEventListener('click', async () => {
+            const classCode = classCodeInput.value.trim();
+            if (!classCode) {
+                joinError.textContent = 'Please enter a class code.';
+                return;
+            }
+
+            joinError.textContent = '';
+            joinClassBtn.disabled = true;
+            joinClassBtn.textContent = 'Joining...';
+
+            try {
+                const response = await fetch('/api/student/join-class', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ classCode: classCode })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Successfully joined class
+                    joinClassModal.style.display = 'none';
+                    
+                    // If this was their first class, load everything
+                    if (studentClasses.length === 0) {
+                        loadChatHistory();
+                        loadSchoolInfo();
+                        addMessageToChat("Great! You've successfully joined a class. You can now start asking questions.", 'model');
+                    } else {
+                        addMessageToChat(`You've joined ${data.class_name}! You now have access to multiple classes.`, 'system');
+                    }
+                    
+                    // Refresh classes list
+                    await loadStudentClasses();
+                } else {
+                    joinError.textContent = data.error || 'Failed to join class';
+                }
+            } catch (error) {
+                joinError.textContent = 'Network error occurred. Please try again.';
+            } finally {
+                joinClassBtn.disabled = false;
+                joinClassBtn.textContent = 'Join Class';
+            }
+        });
+
+        cancelJoinBtn.addEventListener('click', () => {
+            joinClassModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target === joinClassModal) {
+                joinClassModal.style.display = 'none';
+            }
+        });
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = chatInput.value.trim();
+            if (!query) return;
+
+            addMessageToChat(query, 'user');
+            chatInput.value = '';
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+            addMessageToChat('Thinking...', 'model');
+
+            try {
+                const response = await fetch('/api/student-query-ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query }),
+                });
+                
+                const data = await response.json();
+                chatWindow.removeChild(chatWindow.lastChild);
+
+                if (response.ok) {
+                    addMessageToChat(data.response, 'model');
+                    
+                    // Show which class's AI settings were used
+                    if (data.class_info) {
+                        addMessageToChat(`(Response generated using ${data.class_info.class_name} class settings)`, 'system');
+                    }
+                } else {
+                    addMessageToChat(data.error || 'An error occurred.', 'error');
+                }
+            } catch (error) {
+                chatWindow.removeChild(chatWindow.lastChild);
+                addMessageToChat('Could not connect to the server.', 'error');
+            } finally {
+                chatInput.disabled = false;
+                sendButton.disabled = false;
+                chatInput.focus();
+            }
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendButton.click();
+            }
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/logout');
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        });
+    </script>
+</body>
+</html>

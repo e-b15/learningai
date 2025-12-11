@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ductorix.ai - Add Class/Hour</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f0f2f5; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            padding-top: 60px; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 40px auto; 
+            padding: 40px; 
+            background-color: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        h1 { 
+            text-align: center; 
+            margin-bottom: 25px; 
+            color: #222; 
+        }
+        form { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+        label { 
+            font-weight: bold; 
+            color: #222;
+        }
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            font-size: 16px; 
+        }
+        .time-inputs { 
+            display: flex; 
+            gap: 20px; 
+            color: #222;
+        }
+        .time-inputs > div { 
+            flex: 1; 
+        }
+        button { 
+            background-color: #4267B2; 
+            color: white; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 5px; 
+            font-size: 18px; 
+            cursor: pointer; 
+        }
+        button:hover {
+            background-color: #365899;
+        }
+        .message { 
+            padding: 10px; 
+            text-align: center; 
+            border-radius: 5px; 
+            margin-bottom: 15px; 
+        }
+        .error { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+        }
+        .success { 
+            background-color: #d4edda; 
+            color: #155724; 
+        }
+        .submit-button {
+            background-color: #4267B2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create a New Class / Hour</h1>
+        <div id="formMessage" class="message" style="display:none;"></div>
+        <form id="addClassForm">
+            <div>
+                <label for="className">Class Name:</label>
+                <input type="text" id="className" required placeholder="e.g., World History" />
+            </div>
+            <div class="time-inputs">
+                <div>
+                    <label for="startTime">Start Time:</label>
+                    <input type="time" id="startTime" required />
+                </div>
+                <div>
+                    <label for="endTime">End Time:</label>
+                    <input type="time" id="endTime" required />
+                </div>
+            </div>
+        
+            <button class='submit-button' type="submit">Create Class</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('addClassForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const className = document.getElementById('className').value.trim();
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            
+            const formMessage = document.getElementById('formMessage');
+            
+            // Clear any existing messages
+            formMessage.style.display = 'none';
+            formMessage.textContent = '';
+            
+            // Validate input
+            if (!className || !startTime || !endTime) {
+                formMessage.textContent = 'Please fill in all required fields.';
+                formMessage.className = 'message error';
+                formMessage.style.display = 'block';
+                return;
+            }
+            
+            // Validate time logic
+            if (startTime >= endTime) {
+                formMessage.textContent = 'End time must be after start time.';
+                formMessage.className = 'message error';
+                formMessage.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // Create the class
+                const classResponse = await fetch('/api/teacher/classes', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ className: className }),
+                });
+                
+                const classData = await classResponse.json();
+                
+                if (!classResponse.ok) {
+                    if (classResponse.status === 409) {
+                        formMessage.textContent = `You already have a class named "${className}". Please choose a different name.`;
+                    } else {
+                        formMessage.textContent = classData.error || 'Failed to create class.';
+                    }
+                    formMessage.className = 'message error';
+                    formMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Then, create the time setting for this class with default AI settings
+                const timeResponse = await fetch(`/api/teacher/classes/${classData.class_id}/time-settings`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        settingName: `${className} - Class Hours`,
+                        startTime: startTime,
+                        endTime: endTime,
+                        daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'], // Default to weekdays
+                        aiDirectness: 'Balanced', // Default values
+                        aiEvidenceInclusion: false,
+                        aiCreativity: 0.7,
+                        aiAntiCheat: true
+                    }),
+                });
+                
+                if (timeResponse.ok) {
+                    // Success - redirect to dashboard
+                    formMessage.textContent = 'Class created successfully! Redirecting...';
+                    formMessage.className = 'message success';
+                    formMessage.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/teacher-dashboard.html';
+                    }, 1500);
+                } else {
+                    const timeData = await timeResponse.json();
+                    formMessage.textContent = timeData.error || 'Class created but failed to set time-based AI controls.';
+                    formMessage.className = 'message error';
+                    formMessage.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Network error:', error);
+                formMessage.textContent = 'A network error occurred. Please try again.';
+                formMessage.className = 'message error';
+                formMessage.style.display = 'block';
+            }
+        });
+    </script>
+
+    <footer role="contentinfo" style="background-color: #4267B2; color: #fff; text-align: center; padding: 1.5rem; font-size: 0.9rem; width: 100%; box-sizing: border-box; bottom: 0; left: 0; position: absolute;">
+        © 2025 Evan Beaulieu Production. All rights reserved.
+        <div class="small-footer">
+            <p>Ductorix.ai | Version 1</p>
+            <p>Last Updated: July 2025 | Contact: <a href="contact.html" class="footer-link">Here</a></p>
+        </div>
+    </footer>
+
+    <style>
+        .small-footer {
+            font-size: 0.9rem;
+            color: #bbb;
+        }
+
+        .footer-link {
+            color: #bbb;
+            text-decoration: underline;
+            font-style: italic;
+        }
+        footer {
+            margin: 0 0px;
+        }
+    </style>
+</body>
+</html>
